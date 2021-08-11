@@ -46,4 +46,35 @@ const signup = (req, res) => {
   });
 };
 
-module.exports = signup;
+const activateAccount = (req, res) => {
+  const { token } = req.body;
+  if (token) {
+    jwt.verify(token, process.env.JWT_TOKEN, function (err, decodedToken) {
+      if (err) {
+        return res.status(400).json({ error: 'Incorrect or Expire link.' });
+      }
+      const { name, email, password } = decodedToken;
+      User.findOne({ email }).exec((err, user) => {
+        if (user) {
+          return res
+            .status(400)
+            .json({ error: 'User with this email already exists!' });
+        }
+        let newUser = new User({ name, email, password });
+        newUser.save((err, success) => {
+          if (err) {
+            console.log('Error to signup: ', err);
+            return res.status(400).json({ error: 'Error activating account' });
+          }
+          res.json({
+            message: 'Signup successful!',
+          });
+        });
+      });
+    });
+  } else {
+    return res.json({ error: 'Authentication failed!' });
+  }
+};
+
+module.exports = { signup, activateAccount };
