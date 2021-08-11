@@ -161,4 +161,37 @@ const resetPassword = (req, res) => {
   }
 };
 
-module.exports = { signup, activateAccount, forgotPassword, resetPassword };
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email }).exec((error, user) => {
+    if (error) {
+      return res.status(401).json({
+        error: 'This user not exist!',
+      });
+    }
+
+    if (user.password !== password) {
+      return res.status(400).json({
+        error: 'Email or password incorrect!',
+      });
+    }
+
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SIGNIN_KEY, {
+      expiresIn: '7d',
+    });
+    const { _id, name, email } = user;
+
+    res.json({
+      token,
+      user: { _id, name, email },
+    });
+  });
+};
+
+module.exports = {
+  signup,
+  activateAccount,
+  login,
+  forgotPassword,
+  resetPassword,
+};
