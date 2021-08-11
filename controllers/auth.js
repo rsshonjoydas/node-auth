@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-
+const _ = require('lodash');
 const mailgun = require('mailgun-js');
 // const DOMAIN = `${process.env.MAILGUN_DOMAIN}`;
 const DOMAIN = 'sandbox1a6eb1eb6a8344e19b17ac8c74a3ca82.mailgun.org';
@@ -118,4 +118,47 @@ const forgotPassword = (req, res) => {
   });
 };
 
-module.exports = { signup, activateAccount, forgotPassword };
+const resetPassword = (req, res) => {
+  const { resetLink, newPass } = req.body;
+  if (resetLink) {
+    jwt.verify(
+      resetLink,
+      process.env.RESET_PASSWORD,
+      function (error, decodedData) {
+        if (error) {
+          return res.status(401).json({
+            error: 'Incorrect token or it is expire!',
+          });
+        }
+        User.findOne({ resetLink }, (err, user) => {
+          if (err || !user) {
+            return res
+              .status(400)
+              .json({ error: 'User with this email does not exists' });
+          }
+          const obj = {
+            password: newPass,
+            resetLink: '',
+          };
+
+          user = _.extend(user, obj);
+          user.save((err, result) => {
+            if (err) {
+              return res
+                .status(400)
+                .json({ error: 'Reset password link error!' });
+            } else {
+              return res.status(200).json({
+                message: 'Your password has been changed!',
+              });
+            }
+          });
+        });
+      }
+    );
+  } else {
+    return res.status(400).json({ error: 'Authentication failed!' });
+  }
+};
+
+module.exports = { signup, activateAccount, forgotPassword, resetPassword };
