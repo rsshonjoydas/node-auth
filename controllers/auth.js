@@ -2,14 +2,15 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const mailgun = require('mailgun-js');
-// const DOMAIN = `${process.env.MAILGUN_DOMAIN}`;
+
+// ? mailgun configuration
 const DOMAIN = 'sandbox1a6eb1eb6a8344e19b17ac8c74a3ca82.mailgun.org';
 const mg = mailgun({
-  // apiKey: process.env.MAILGUN_APIKEY,
   apiKey: '1545752cad12e9ad1489e68f799e65c3-9ad3eb61-390e38ba',
   domain: DOMAIN,
 });
 
+// ! signup route
 const signup = (req, res) => {
   console.log(req.body);
   const { name, email, password } = req.body;
@@ -46,6 +47,7 @@ const signup = (req, res) => {
   });
 };
 
+// ! activate account route
 const activateAccount = (req, res) => {
   const { token } = req.body;
   if (token) {
@@ -77,6 +79,7 @@ const activateAccount = (req, res) => {
   }
 };
 
+// ! forgot password route
 const forgotPassword = (req, res) => {
   const { email } = req.body;
 
@@ -118,6 +121,7 @@ const forgotPassword = (req, res) => {
   });
 };
 
+// ! reset password route
 const resetPassword = (req, res) => {
   const { resetLink, newPass } = req.body;
   if (resetLink) {
@@ -161,6 +165,7 @@ const resetPassword = (req, res) => {
   }
 };
 
+// !login route
 const login = (req, res) => {
   const { email, password } = req.body;
   User.findOne({ email }).exec((error, user) => {
